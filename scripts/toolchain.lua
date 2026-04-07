@@ -995,7 +995,7 @@ function toolchain(_buildDir, _libDir)
 		buildoptions {
 			"-arch arm64",
 			"-mios-version-min=16.0",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
 
 			"-fembed-bitcode",
 			"-Wfatal-errors",
@@ -1005,8 +1005,8 @@ function toolchain(_buildDir, _libDir)
 		linkoptions {
 			"-arch arm64",
 			"-mios-version-min=16.0",
-			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk",
-			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS" ..iosPlatform .. ".sdk/System/Library/Frameworks",
+			"--sysroot=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
+			"-F/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks",
 		}
 
 	configuration { "xros*" }
