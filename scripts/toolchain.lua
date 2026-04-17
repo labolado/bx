@@ -208,7 +208,7 @@ function toolchain(_buildDir, _libDir)
 		tvosPlatform = "12.0"
 	end
 
-	local macosPlatform = "10.13.6"
+	local macosPlatform = "10.15"
 	if _OPTIONS["with-macos"] then
 		macosPlatform = _OPTIONS["with-macos"]
 	elseif _ACTION == "xcode11" then
