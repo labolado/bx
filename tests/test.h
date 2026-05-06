@@ -6,6 +6,29 @@
 #ifndef BX_TEST_H_HEADER_GUARD
 #define BX_TEST_H_HEADER_GUARD
 
+#include <exception>
+
+// Override bx asserts in test builds: failing asserts throw std::exception so that Catch2's
+// REQUIRE_ASSERTS (REQUIRE_THROWS) can catch them.
+#if BX_CONFIG_DEBUG
+#	define BX_ASSERT(_condition, ...)                \
+		do {                                         \
+			if (!(_condition) )                      \
+			{                                        \
+				throw ::std::exception();            \
+			}                                        \
+		} while (false)
+
+#	define BX_ASSERT_LOC(_location, _condition, ...) \
+		do {                                         \
+			(void)(_location);                       \
+			if (!(_condition) )                      \
+			{                                        \
+				throw ::std::exception();            \
+			}                                        \
+		} while (false)
+#endif // BX_CONFIG_DEBUG
+
 #include <bx/bx.h>
 
 BX_PRAGMA_DIAGNOSTIC_PUSH();
@@ -13,8 +36,6 @@ BX_PRAGMA_DIAGNOSTIC_IGNORED_MSVC(4312); // warning C4312 : 'reinterpret_cast' :
 //BX_PRAGMA_DIAGNOSTIC_IGNORED_CLANG("-Wnan-infinity-disabled");
 #include <catch/catch_amalgamated.hpp>
 BX_PRAGMA_DIAGNOSTIC_POP();
-
-#define TEST(_x) TEST_CASE(#_x, "")
 
 #if BX_CONFIG_DEBUG
 #	define REQUIRE_ASSERTS(_x) REQUIRE_THROWS(_x)

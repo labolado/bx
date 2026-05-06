@@ -30,6 +30,10 @@ TEST_CASE("isFinite, isInfinite, isNan", "[math]")
 		REQUIRE(!!::isnan(u.f)    == bx::isNan(u.f) );
 		REQUIRE(!!::isfinite(u.f) == bx::isFinite(u.f) );
 		REQUIRE(!!::isinf(u.f)    == bx::isInfinite(u.f) );
+#elif BX_PLATFORM_ANDROID
+		REQUIRE(!!::isnan(u.f)    == bx::isNan(u.f) );
+		REQUIRE(!!::isfinite(u.f) == bx::isFinite(u.f) );
+		REQUIRE(!!::isinf(u.f)    == bx::isInfinite(u.f) );
 #elif !BX_CRT_MINGW
 		REQUIRE(::isnanf(u.f)  == bx::isNan(u.f) );
 		REQUIRE(::finitef(u.f) == bx::isFinite(u.f) );
@@ -111,7 +115,7 @@ TEST_CASE("ceilLog2", "[math]")
 
 	for (uint32_t ii = 1; ii < INT32_MAX; ii += rand()%(1<<13)+1)
 	{
-		REQUIRE(bx::nextPow2(ii) == bx::uint32_nextpow2(ii) );
+		REQUIRE(bx::nextPow2(ii) == bx::simd32_u32_nextpow2(bx::simd32_splat(ii)).u32 );
 	}
 }
 
@@ -224,6 +228,79 @@ TEST_CASE("countBits", "[math]")
 	STATIC_REQUIRE(16 == bx::countBits(UINT16_MAX) );
 	STATIC_REQUIRE(32 == bx::countBits(UINT32_MAX) );
 	STATIC_REQUIRE(64 == bx::countBits(UINT64_MAX) );
+}
+
+TEST_CASE("satAdd", "[math]")
+{
+	STATIC_REQUIRE(  0 == bx::satAdd<uint8_t >(0,   0) );
+	STATIC_REQUIRE(200 == bx::satAdd<uint8_t >(100, 100) );
+	STATIC_REQUIRE(255 == bx::satAdd<uint8_t >(UINT8_MAX, 0) );
+	STATIC_REQUIRE(255 == bx::satAdd<uint8_t >(UINT8_MAX, 1) );
+	STATIC_REQUIRE(255 == bx::satAdd<uint8_t >(UINT8_MAX, 10) );
+	STATIC_REQUIRE(255 == bx::satAdd<uint8_t >(254, 254) );
+	STATIC_REQUIRE(255 == bx::satAdd<uint8_t >(200, 100) );
+
+	STATIC_REQUIRE(UINT16_MAX     == bx::satAdd<uint16_t>(UINT16_MAX, 0) );
+	STATIC_REQUIRE(UINT16_MAX     == bx::satAdd<uint16_t>(UINT16_MAX, 1) );
+	STATIC_REQUIRE(UINT16_MAX     == bx::satAdd<uint16_t>(65530, 10) );
+	STATIC_REQUIRE(uint16_t(65534)== bx::satAdd<uint16_t>(65530, 4) );
+
+	STATIC_REQUIRE(UINT32_MAX == bx::satAdd<uint32_t>(UINT32_MAX, 0) );
+	STATIC_REQUIRE(UINT32_MAX == bx::satAdd<uint32_t>(UINT32_MAX, 1) );
+	STATIC_REQUIRE(UINT32_MAX == bx::satAdd<uint32_t>(UINT32_MAX-1, 10) );
+
+	STATIC_REQUIRE(UINT64_MAX == bx::satAdd<uint64_t>(UINT64_MAX, 1) );
+	STATIC_REQUIRE(UINT64_MAX == bx::satAdd<uint64_t>(UINT64_MAX-1, 10) );
+
+	// signed
+	STATIC_REQUIRE( 127 == bx::satAdd<int8_t >( 127,   1) );
+	STATIC_REQUIRE( 127 == bx::satAdd<int8_t >( 100, 100) );
+	STATIC_REQUIRE(-128 == bx::satAdd<int8_t >(-128,  -1) );
+	STATIC_REQUIRE(-128 == bx::satAdd<int8_t >(-100,-100) );
+	STATIC_REQUIRE(  -1 == bx::satAdd<int8_t >( 127,-128) );
+
+	STATIC_REQUIRE(INT32_MAX == bx::satAdd<int32_t>(INT32_MAX,         1) );
+	STATIC_REQUIRE(INT32_MAX == bx::satAdd<int32_t>(INT32_MAX, INT32_MAX) );
+	STATIC_REQUIRE(INT32_MIN == bx::satAdd<int32_t>(INT32_MIN,        -1) );
+	STATIC_REQUIRE(INT32_MIN == bx::satAdd<int32_t>(INT32_MIN, INT32_MIN) );
+	STATIC_REQUIRE(      -1  == bx::satAdd<int32_t>(INT32_MAX, INT32_MIN) );
+
+	STATIC_REQUIRE(INT64_MAX == bx::satAdd<int64_t>(INT64_MAX,         1) );
+	STATIC_REQUIRE(INT64_MIN == bx::satAdd<int64_t>(INT64_MIN,        -1) );
+}
+
+TEST_CASE("satSub", "[math]")
+{
+	STATIC_REQUIRE(  0 == bx::satSub<uint8_t >(0, 0) );
+	STATIC_REQUIRE(  0 == bx::satSub<uint8_t >(10, 20) );
+	STATIC_REQUIRE(  0 == bx::satSub<uint8_t >(0, UINT8_MAX) );
+	STATIC_REQUIRE( 10 == bx::satSub<uint8_t >(20, 10) );
+	STATIC_REQUIRE(UINT8_MAX == bx::satSub<uint8_t >(UINT8_MAX, 0) );
+
+	STATIC_REQUIRE( 0 == bx::satSub<uint16_t>(10, 20) );
+	STATIC_REQUIRE( 0 == bx::satSub<uint16_t>(0, UINT16_MAX) );
+	STATIC_REQUIRE(UINT16_MAX == bx::satSub<uint16_t>(UINT16_MAX, 0) );
+
+	STATIC_REQUIRE( 0 == bx::satSub<uint32_t>(10, 20) );
+	STATIC_REQUIRE( 0 == bx::satSub<uint32_t>(0, UINT32_MAX) );
+	STATIC_REQUIRE(UINT32_MAX == bx::satSub<uint32_t>(UINT32_MAX, 0) );
+
+	STATIC_REQUIRE( 0 == bx::satSub<uint64_t>(10, 20) );
+	STATIC_REQUIRE(UINT64_MAX == bx::satSub<uint64_t>(UINT64_MAX, 0) );
+
+	// signed
+	STATIC_REQUIRE(-128 == bx::satSub<int8_t >(-128,  1) );
+	STATIC_REQUIRE( 127 == bx::satSub<int8_t >( 127, -1) );
+	STATIC_REQUIRE( 127 == bx::satSub<int8_t >(   0,-128) );
+
+	STATIC_REQUIRE(INT32_MIN == bx::satSub<int32_t>(INT32_MIN,         1) );
+	STATIC_REQUIRE(INT32_MIN == bx::satSub<int32_t>(INT32_MIN, INT32_MAX) );
+	STATIC_REQUIRE(INT32_MAX == bx::satSub<int32_t>(        0, INT32_MIN) );
+	STATIC_REQUIRE(INT32_MAX == bx::satSub<int32_t>(INT32_MAX,        -1) );
+	STATIC_REQUIRE(INT32_MAX == bx::satSub<int32_t>(INT32_MAX, INT32_MIN) );
+
+	STATIC_REQUIRE(INT64_MIN == bx::satSub<int64_t>(INT64_MIN,  1) );
+	STATIC_REQUIRE(INT64_MAX == bx::satSub<int64_t>(        0, INT64_MIN) );
 }
 
 template<typename Ty>
@@ -906,8 +983,8 @@ TEST_CASE("limits", "[math]")
 	STATIC_REQUIRE(bx::LimitsT<int8_t>::min == INT8_MIN);
 	STATIC_REQUIRE(bx::LimitsT<int8_t>::max == INT8_MAX);
 
-	STATIC_REQUIRE(bx::LimitsT<signed char>::min == CHAR_MIN);
-	STATIC_REQUIRE(bx::LimitsT<signed char>::max == CHAR_MAX);
+	STATIC_REQUIRE(bx::LimitsT<signed char>::min == SCHAR_MIN);
+	STATIC_REQUIRE(bx::LimitsT<signed char>::max == SCHAR_MAX);
 
 	STATIC_REQUIRE(bx::LimitsT<unsigned char>::min == 0);
 	STATIC_REQUIRE(bx::LimitsT<unsigned char>::max == UCHAR_MAX);
