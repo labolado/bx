@@ -824,11 +824,22 @@ TEST_CASE("simd128_test_any_all", "[simd]")
 	const simd128_t all_set  = simd128_ld<simd128_t>(0x80000000u, 0x80000000u, 0x80000000u, 0x80000000u);
 	const simd128_t none_set = simd128_zero<simd128_t>();
 	const simd128_t x_set    = simd128_ld<simd128_t>(0x80000000u, 0u, 0u, 0u);
+	const simd128_t y_set    = simd128_ld<simd128_t>(0u, 0x80000000u, 0u, 0u);
+	const simd128_t z_set    = simd128_ld<simd128_t>(0u, 0u, 0x80000000u, 0u);
+	const simd128_t w_set    = simd128_ld<simd128_t>(0u, 0u, 0u, 0x80000000u);
 
 	REQUIRE( simd128_test_any_xyzw(all_set));
 	REQUIRE( simd128_test_all_xyzw(all_set));
 	REQUIRE(!simd128_test_any_xyzw(none_set));
 	REQUIRE(!simd128_test_all_xyzw(none_set));
+	REQUIRE( simd128_test_any_xyzw(x_set));
+	REQUIRE( simd128_test_any_xyzw(y_set));
+	REQUIRE( simd128_test_any_xyzw(z_set));
+	REQUIRE( simd128_test_any_xyzw(w_set));
+	REQUIRE(!simd128_test_all_xyzw(x_set));
+	REQUIRE(!simd128_test_all_xyzw(y_set));
+	REQUIRE(!simd128_test_all_xyzw(z_set));
+	REQUIRE(!simd128_test_all_xyzw(w_set));
 	REQUIRE( simd128_test_any_x(x_set));
 	REQUIRE(!simd128_test_any_y(x_set));
 	REQUIRE( simd128_test_all_x(x_set));
@@ -841,7 +852,9 @@ TEST_CASE("simd128_f32_dot3", "[simd]")
 	const simd128_t b = simd128_ld<simd128_t>(4.0f, 5.0f, 6.0f, 0.0f);
 	// 1*4 + 2*5 + 3*6 = 32
 	const simd128_t d = simd128_f32_dot3(a, b);
-	REQUIRE(simd128_f32_x(d) == Catch::Approx(32.0f));
+	REQUIRE(simd128_f32_x(d) == Catch::Approx(32.0f) );
+	REQUIRE(simd128_f32_y(d) == Catch::Approx(32.0f) );
+	REQUIRE(simd128_f32_z(d) == Catch::Approx(32.0f) );
 }
 
 TEST_CASE("simd128_f32_dot", "[simd]")
@@ -850,7 +863,10 @@ TEST_CASE("simd128_f32_dot", "[simd]")
 	const simd128_t b = simd128_ld<simd128_t>(5.0f, 6.0f, 7.0f, 8.0f);
 	// 1*5 + 2*6 + 3*7 + 4*8 = 70
 	const simd128_t d = simd128_f32_dot(a, b);
-	REQUIRE(simd128_f32_x(d) == Catch::Approx(70.0f));
+	REQUIRE(simd128_f32_x(d) == Catch::Approx(70.0f) );
+	REQUIRE(simd128_f32_y(d) == Catch::Approx(70.0f) );
+	REQUIRE(simd128_f32_z(d) == Catch::Approx(70.0f) );
+	REQUIRE(simd128_f32_w(d) == Catch::Approx(70.0f) );
 }
 
 TEST_CASE("simd128_f32_cross3", "[simd]")
